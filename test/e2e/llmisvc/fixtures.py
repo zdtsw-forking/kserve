@@ -111,9 +111,6 @@ LLMINFERENCESERVICE_CONFIGS = {
                         "timeoutSeconds": 5,
                         "failureThreshold": 3,
                     },
-                    "securityContext": {
-                        "runAsNonRoot": RUN_AS_NON_ROOT,
-                    },
                 }
             ]
         },
