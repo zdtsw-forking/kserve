@@ -44,21 +44,30 @@ SCHEDULER_CONFIGMAP_KEY = "epp"
 
 # Vanilla Kubernetes rejects runAsNonRoot-only containers when the image does not declare a USER.
 # Keep the templates OpenShift-safe and use an explicit non-root UID only in upstream CI test overrides.
-UPSTREAM_K8S_NON_ROOT_SECURITY_CONTEXT = {
-    "runAsNonRoot": True,
-    "runAsUser": 1000,
-}
+# On OpenShift (RUN_AS_NON_ROOT=true), the SCC assigns UIDs from the namespace range,
+# so explicit runAsUser values must be omitted to avoid SCC validation failures.
+if RUN_AS_NON_ROOT:
+    UPSTREAM_K8S_NON_ROOT_SECURITY_CONTEXT = {
+        "runAsNonRoot": True,
+    }
+    LLMD_SIMULATOR_SECURITY_CONTEXT = {
+        "runAsNonRoot": True,
+    }
+else:
+    UPSTREAM_K8S_NON_ROOT_SECURITY_CONTEXT = {
+        "runAsNonRoot": True,
+        "runAsUser": 1000,
+    }
+    LLMD_SIMULATOR_SECURITY_CONTEXT = {
+        "runAsNonRoot": True,
+        "runAsUser": 65532,
+        "runAsGroup": 65532,
+    }
 
 UPSTREAM_K8S_VLLM_ENV_OVERRIDES = [
     {"name": "USER", "value": "nonroot"},
     {"name": "TORCHINDUCTOR_CACHE_DIR", "value": "/tmp/torchinductor-cache"},
 ]
-
-LLMD_SIMULATOR_SECURITY_CONTEXT = {
-    "runAsNonRoot": True,
-    "runAsUser": 65532,
-    "runAsGroup": 65532,
-}
 
 LLMINFERENCESERVICE_CONFIGS = {
     "workload-single-cpu": {
