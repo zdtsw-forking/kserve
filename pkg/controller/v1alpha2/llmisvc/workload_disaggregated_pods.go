@@ -149,6 +149,9 @@ func (r *LLMISVCReconciler) disaggregatedSingleNodeDecodeTemplate(ctx context.Co
 	utils.PropagatePrefixedMap(llmSvc.GetLabels(), &template.Labels, disaggregatedLabelPrefixes...)
 	utils.PropagateMap(llmSvc.Spec.Labels, &template.Labels)
 	utils.PropagateMap(llmSvc.Spec.Annotations, &template.Annotations, routingSpecAnnotations...)
+	if llmSvc.Spec.KVCacheOffloading != nil {
+		template.Labels = addPVCEvictorConsumerLabels(template.Labels, llmSvc.Spec.KVCacheOffloading.Secondary)
+	}
 
 	if llmSvc.Spec.Tracing != nil {
 		if mainIdx := slices.IndexFunc(template.Spec.Containers, func(c corev1.Container) bool { return c.Name == "main" }); mainIdx >= 0 {
@@ -204,6 +207,9 @@ func (r *LLMISVCReconciler) disaggregatedSingleNodePrefillTemplate(ctx context.C
 	utils.PropagatePrefixedMap(llmSvc.GetLabels(), &template.Labels, disaggregatedLabelPrefixes...)
 	utils.PropagateMap(prefill.Labels, &template.Labels)
 	utils.PropagateMap(prefill.Annotations, &template.Annotations, routingSpecAnnotations...)
+	if prefill.KVCacheOffloading != nil {
+		template.Labels = addPVCEvictorConsumerLabels(template.Labels, prefill.KVCacheOffloading.Secondary)
+	}
 
 	if llmSvc.Spec.Tracing != nil {
 		if mainIdx := slices.IndexFunc(template.Spec.Containers, func(c corev1.Container) bool { return c.Name == "main" }); mainIdx >= 0 {
@@ -330,9 +336,15 @@ func (r *LLMISVCReconciler) disaggregatedMultiNodeDecodeTemplate(ctx context.Con
 	if group.LeaderTemplate != nil {
 		utils.PropagateMap(llmSvc.Spec.Labels, &group.LeaderTemplate.Labels)
 		utils.PropagateMap(llmSvc.Spec.Annotations, &group.LeaderTemplate.Annotations, routingSpecAnnotations...)
+		if llmSvc.Spec.KVCacheOffloading != nil {
+			group.LeaderTemplate.Labels = addPVCEvictorConsumerLabels(group.LeaderTemplate.Labels, llmSvc.Spec.KVCacheOffloading.Secondary)
+		}
 	}
 	utils.PropagateMap(llmSvc.Spec.Labels, &group.WorkerTemplate.Labels)
 	utils.PropagateMap(llmSvc.Spec.Annotations, &group.WorkerTemplate.Annotations, routingSpecAnnotations...)
+	if llmSvc.Spec.KVCacheOffloading != nil {
+		group.WorkerTemplate.Labels = addPVCEvictorConsumerLabels(group.WorkerTemplate.Labels, llmSvc.Spec.KVCacheOffloading.Secondary)
+	}
 
 	if llmSvc.Spec.Tracing != nil {
 		if group.LeaderTemplate != nil {
@@ -436,9 +448,15 @@ func (r *LLMISVCReconciler) disaggregatedMultiNodePrefillTemplate(ctx context.Co
 	if group.LeaderTemplate != nil {
 		utils.PropagateMap(prefill.Labels, &group.LeaderTemplate.Labels)
 		utils.PropagateMap(prefill.Annotations, &group.LeaderTemplate.Annotations, routingSpecAnnotations...)
+		if prefill.KVCacheOffloading != nil {
+			group.LeaderTemplate.Labels = addPVCEvictorConsumerLabels(group.LeaderTemplate.Labels, prefill.KVCacheOffloading.Secondary)
+		}
 	}
 	utils.PropagateMap(prefill.Labels, &group.WorkerTemplate.Labels)
 	utils.PropagateMap(prefill.Annotations, &group.WorkerTemplate.Annotations, routingSpecAnnotations...)
+	if prefill.KVCacheOffloading != nil {
+		group.WorkerTemplate.Labels = addPVCEvictorConsumerLabels(group.WorkerTemplate.Labels, prefill.KVCacheOffloading.Secondary)
+	}
 
 	return multiNodeRoleTemplate(llmSvc, group), nil
 }

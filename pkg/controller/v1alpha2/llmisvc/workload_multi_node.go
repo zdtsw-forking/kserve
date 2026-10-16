@@ -275,9 +275,15 @@ func (r *LLMISVCReconciler) expectedMainMultiNodeLWS(ctx context.Context, llmSvc
 	if expected.Spec.LeaderWorkerTemplate.LeaderTemplate != nil {
 		utils.PropagateMap(llmSvc.Spec.Labels, &expected.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels)
 		utils.PropagateMap(llmSvc.Spec.Annotations, &expected.Spec.LeaderWorkerTemplate.LeaderTemplate.Annotations, routingSpecAnnotations...)
+		if llmSvc.Spec.KVCacheOffloading != nil {
+			expected.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels = addPVCEvictorConsumerLabels(expected.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels, llmSvc.Spec.KVCacheOffloading.Secondary)
+		}
 	}
 	utils.PropagateMap(llmSvc.Spec.Labels, &expected.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels)
 	utils.PropagateMap(llmSvc.Spec.Annotations, &expected.Spec.LeaderWorkerTemplate.WorkerTemplate.Annotations, routingSpecAnnotations...)
+	if llmSvc.Spec.KVCacheOffloading != nil {
+		expected.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels = addPVCEvictorConsumerLabels(expected.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels, llmSvc.Spec.KVCacheOffloading.Secondary)
+	}
 
 	// Inject tracing instrumentation when spec.tracing is set
 	if llmSvc.Spec.Tracing != nil {
@@ -419,9 +425,15 @@ func (r *LLMISVCReconciler) expectedPrefillMultiNodeLWS(ctx context.Context, llm
 		if expected.Spec.LeaderWorkerTemplate.LeaderTemplate != nil {
 			utils.PropagateMap(llmSvc.Spec.Prefill.Labels, &expected.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels)
 			utils.PropagateMap(llmSvc.Spec.Prefill.Annotations, &expected.Spec.LeaderWorkerTemplate.LeaderTemplate.Annotations, routingSpecAnnotations...)
+			if llmSvc.Spec.Prefill.KVCacheOffloading != nil {
+				expected.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels = addPVCEvictorConsumerLabels(expected.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels, llmSvc.Spec.Prefill.KVCacheOffloading.Secondary)
+			}
 		}
 		utils.PropagateMap(llmSvc.Spec.Prefill.Labels, &expected.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels)
 		utils.PropagateMap(llmSvc.Spec.Prefill.Annotations, &expected.Spec.LeaderWorkerTemplate.WorkerTemplate.Annotations, routingSpecAnnotations...)
+		if llmSvc.Spec.Prefill.KVCacheOffloading != nil {
+			expected.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels = addPVCEvictorConsumerLabels(expected.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels, llmSvc.Spec.Prefill.KVCacheOffloading.Secondary)
+		}
 	}
 
 	applyLeaderWorkerSetWorkloadRevision(&expected.Spec.LeaderWorkerTemplate, config)
