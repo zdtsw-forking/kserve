@@ -114045,6 +114045,7 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - persistentvolumeclaims
   - pods
   verbs:
   - get
